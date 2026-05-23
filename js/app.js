@@ -1,12 +1,10 @@
 /*
   SEMANA 11 - ENTREGA INCREMENTAL DEL SITIO/PROYECTO
-  OBJETIVO: Entregar una versión funcional del proyecto con las siguientes características:
-  - Formulario de inscripción con validación de datos.
-  - Almacenamiento de inscripciones en localStorage.
-  - Visualización de inscripciones en una tabla.
-  - Resumen estadístico de inscripciones (total, válidos, pendientes, taller más popular).
-  - Funcionalidad para eliminar inscripciones individuales y borrar todo.
-  - Mensajes de retroalimentación para el usuario.  
+  Archivo corregido con mejora aplicada.
+
+  Mejora aplicada:
+  Se reforzaron las validaciones del formulario para proteger la integridad
+  de la información antes de guardar una inscripción.
 */
 
 const STORAGE_KEY = "semana11_inscripciones_incremento";
@@ -82,11 +80,11 @@ function validarInscripcion(registro) {
     errores.push("La edad debe ser de 12 años o más.");
   }
 
-  if (registro.telefono.length !== 10 || !/^\d+$/.test(registro.telefono)) {
+  if (!registro.telefono || registro.telefono.length !== 10 || !/^\d+$/.test(registro.telefono)) {
     errores.push("El teléfono debe tener exactamente 10 dígitos numéricos.");
   }
 
-  if (!registro.correo.includes("@") || !registro.correo.includes(".")) {
+  if (!registro.correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registro.correo)) {
     errores.push("El correo electrónico debe tener un formato válido.");
   }
 
@@ -113,6 +111,21 @@ function obtenerDescripcionTaller(taller) {
       return "Datos para la finca: tablas, filtros y reportes.";
     default:
       return "Taller no identificado.";
+  }
+}
+
+function obtenerNombreTaller(taller) {
+  switch (taller) {
+    case "web":
+      return "Programación web";
+    case "huerta":
+      return "Huerta digital";
+    case "finanzas":
+      return "Finanzas para emprendimientos";
+    case "datos":
+      return "Datos para la finca";
+    default:
+      return "Sin datos";
   }
 }
 
@@ -162,7 +175,7 @@ function renderizarTabla() {
       <td>${item.nombre}</td>
       <td>${item.edad}</td>
       <td>${item.telefono}<br><small>${item.correo}</small></td>
-      <td><strong>${item.taller}</strong><br><small>${item.descripcion}</small></td>
+      <td><strong>${obtenerNombreTaller(item.taller)}</strong><br><small>${item.descripcion}</small></td>
       <td>${item.jornada}</td>
       <td>${item.fecha}</td>
       <td><button class="button secondary" type="button" onclick="eliminarRegistro(${item.id})">Eliminar</button></td>
@@ -178,7 +191,7 @@ function actualizarResumen() {
   totalInscritos.textContent = inscripciones.length;
   totalValidos.textContent = inscripciones.filter((item) => item.edad >= 12 && item.acepta === true).length;
   totalPendientes.textContent = 0;
-  tallerPopular.textContent = obtenerTallerPopular(inscripciones);
+  tallerPopular.textContent = obtenerNombreTaller(obtenerTallerPopular(inscripciones));
 }
 
 function obtenerTallerPopular(lista = inscripciones) {
