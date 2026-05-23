@@ -1,25 +1,21 @@
 /*
   SEMANA 11 - ENTREGA INCREMENTAL DEL SITIO/PROYECTO
-  Archivo con errores intencionales para evaluacion.
-
-  Reto:
-  1. Abrir la consola del navegador.
-  2. Identificar errores frecuentes de JavaScript.
-  3. Corregir el flujo sin borrar toda la estructura.
-  4. Validar que el incremento funcione y completar el checklist.
-
-  Importante: este archivo tiene errores de referencia, eventos, tipos,
-  logica, validaciones y ciclos. Corrige de forma sistematica.
+  OBJETIVO: Entregar una versión funcional del proyecto con las siguientes características:
+  - Formulario de inscripción con validación de datos.
+  - Almacenamiento de inscripciones en localStorage.
+  - Visualización de inscripciones en una tabla.
+  - Resumen estadístico de inscripciones (total, válidos, pendientes, taller más popular).
+  - Funcionalidad para eliminar inscripciones individuales y borrar todo.
+  - Mensajes de retroalimentación para el usuario.  
 */
 
 const STORAGE_KEY = "semana11_inscripciones_incremento";
 let inscripciones = [];
 
-// ERROR INTENCIONAL: algunos identificadores no coinciden con el HTML.
-const form = document.getElementById("formulario-inscripcion");
+const form = document.getElementById("form-inscripcion");
 const btnLimpiar = document.getElementById("btn-limpiar");
 const btnBorrarTodo = document.getElementById("btn-borrar-todo");
-const mensaje = document.getElementById("mensajes");
+const mensaje = document.getElementById("mensaje");
 const tabla = document.getElementById("tabla-inscripciones");
 const totalInscritos = document.getElementById("total-inscritos");
 const totalValidos = document.getElementById("total-validos");
@@ -35,11 +31,13 @@ function iniciarAplicacion() {
   renderizarTabla();
   actualizarResumen();
 
-  // ERROR INTENCIONAL: si form es null, este punto falla.
-  form.addEventListener("submit", manejarEnvio);
+  if (form) {
+    form.addEventListener("submit", manejarEnvio);
+  }
 
-  // ERROR INTENCIONAL: la funcion se ejecuta de inmediato en lugar de quedar como callback.
-  btnLimpiar.addEventListener("click", limpiarFormulario());
+  if (btnLimpiar) {
+    btnLimpiar.addEventListener("click", limpiarFormulario);
+  }
 
   if (btnBorrarTodo) {
     btnBorrarTodo.addEventListener("click", borrarTodo);
@@ -47,16 +45,14 @@ function iniciarAplicacion() {
 }
 
 function manejarEnvio(evento) {
-  // ERROR INTENCIONAL: sin preventDefault el formulario puede recargar la pagina.
-  // evento.preventDefault();
+  evento.preventDefault();
 
   const registro = leerFormulario();
   const errores = validarInscripcion(registro);
 
-  // ERROR INTENCIONAL: el flujo esta invertido. Guarda cuando hay errores.
-  if (errores.length > 0) {
+  if (errores.length === 0) {
     guardarRegistro(registro);
-    mostrarMensaje("Inscripcion guardada correctamente.", "exito");
+    mostrarMensaje("Inscripción guardada correctamente.", "exito");
     form.reset();
   } else {
     mostrarMensaje(errores.join(" | "), "error");
@@ -66,10 +62,8 @@ function manejarEnvio(evento) {
 function leerFormulario() {
   return {
     nombre: document.getElementById("nombre").value.trim(),
-    // ERROR INTENCIONAL: el valor del input queda como texto. Debe convertirse a numero.
-    edad: document.getElementById("edad").value,
-    // ERROR INTENCIONAL: el id real del HTML es telefono, no celular.
-    telefono: document.getElementById("celular").value.trim(),
+    edad: Number(document.getElementById("edad").value),
+    telefono: document.getElementById("telefono").value.trim(),
     correo: document.getElementById("correo").value.trim(),
     taller: document.getElementById("taller").value,
     jornada: document.getElementById("jornada").value,
@@ -80,31 +74,27 @@ function leerFormulario() {
 function validarInscripcion(registro) {
   const errores = [];
 
-  if (registro.nombre.length < 3) {
+  if (!registro.nombre || registro.nombre.length < 3) {
     errores.push("El nombre debe tener al menos 3 caracteres.");
   }
 
-  // ERROR INTENCIONAL: condicion invertida.
-  if (registro.edad >= 12) {
-    errores.push("La edad debe ser de 12 anos o mas.");
+  if (Number.isNaN(registro.edad) || registro.edad < 12) {
+    errores.push("La edad debe ser de 12 años o más.");
   }
 
-  // ERROR INTENCIONAL: debe fallar si NO son 10 digitos O si contiene letras.
-  if (registro.telefono.length !== 10 && !/^\d+$/.test(registro.telefono)) {
-    errores.push("El telefono debe tener exactamente 10 digitos numericos.");
+  if (registro.telefono.length !== 10 || !/^\d+$/.test(registro.telefono)) {
+    errores.push("El teléfono debe tener exactamente 10 dígitos numéricos.");
   }
 
-  // ERROR INTENCIONAL: debe validar que exista @ y punto. La condicion actual permite casos invalidos.
-  if (!registro.correo.includes("@") && !registro.correo.includes(".")) {
-    errores.push("El correo electronico debe tener un formato valido.");
+  if (!registro.correo.includes("@") || !registro.correo.includes(".")) {
+    errores.push("El correo electrónico debe tener un formato válido.");
   }
 
   if (registro.taller === "") {
     errores.push("Debe seleccionar un taller.");
   }
 
-  // ERROR INTENCIONAL: propiedad mal escrita. El objeto usa acepta, no acepto.
-  if (registro.acepto !== true) {
+  if (registro.acepta !== true) {
     errores.push("Debe confirmar que los datos son correctos.");
   }
 
@@ -113,13 +103,12 @@ function validarInscripcion(registro) {
 
 function obtenerDescripcionTaller(taller) {
   switch (taller) {
-    // ERROR INTENCIONAL: el valor real del select es web, no programacion.
-    case "programacion":
-      return "Programacion web: HTML, CSS, JavaScript y depuracion.";
+    case "web":
+      return "Programación web: HTML, CSS, JavaScript y depuración.";
     case "huerta":
       return "Huerta digital: registros, formularios y seguimiento.";
     case "finanzas":
-      return "Finanzas: control basico para emprendimientos rurales.";
+      return "Finanzas: control básico para emprendimientos rurales.";
     case "datos":
       return "Datos para la finca: tablas, filtros y reportes.";
     default:
@@ -136,9 +125,7 @@ function guardarRegistro(registro) {
   };
 
   inscripciones.push(nuevoRegistro);
-
-  // ERROR INTENCIONAL: variable mal escrita. Debe guardar inscripciones.
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(inscripcion));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(inscripciones));
 
   renderizarTabla();
   actualizarResumen();
@@ -149,7 +136,8 @@ function cargarInscripciones() {
   if (!datos) return [];
 
   try {
-    return JSON.parse(datos);
+    const registros = JSON.parse(datos);
+    return Array.isArray(registros) ? registros : [];
   } catch (error) {
     console.warn("No se pudieron cargar los datos guardados:", error);
     return [];
@@ -158,17 +146,18 @@ function cargarInscripciones() {
 
 function renderizarTabla() {
   if (!tabla) return;
+
   tabla.innerHTML = "";
 
   if (inscripciones.length === 0) {
-    tabla.innerHTML = '<tr><td colspan="7" class="empty">Aun no hay registros.</td></tr>';
+    tabla.innerHTML = '<tr><td colspan="7" class="empty">Aún no hay registros.</td></tr>';
     return;
   }
 
-  // ERROR INTENCIONAL: el ciclo se pasa una posicion y produce item undefined.
-  for (let i = 0; i <= inscripciones.length; i++) {
+  for (let i = 0; i < inscripciones.length; i++) {
     const item = inscripciones[i];
     const fila = document.createElement("tr");
+
     fila.innerHTML = `
       <td>${item.nombre}</td>
       <td>${item.edad}</td>
@@ -178,6 +167,7 @@ function renderizarTabla() {
       <td>${item.fecha}</td>
       <td><button class="button secondary" type="button" onclick="eliminarRegistro(${item.id})">Eliminar</button></td>
     `;
+
     tabla.appendChild(fila);
   }
 }
@@ -186,9 +176,8 @@ function actualizarResumen() {
   if (!totalInscritos) return;
 
   totalInscritos.textContent = inscripciones.length;
-  totalValidos.textContent = inscripciones.filter((item) => item.edad > 12).length;
-  // ERROR INTENCIONAL: pendiente no significa taller vacio; esto debe ajustarse al criterio del proyecto.
-  totalPendientes.textContent = inscripciones.filter((item) => item.taller === "").length;
+  totalValidos.textContent = inscripciones.filter((item) => item.edad >= 12 && item.acepta === true).length;
+  totalPendientes.textContent = 0;
   tallerPopular.textContent = obtenerTallerPopular(inscripciones);
 }
 
@@ -196,6 +185,7 @@ function obtenerTallerPopular(lista = inscripciones) {
   if (!lista || lista.length === 0) return "Sin datos";
 
   const conteo = {};
+
   for (let i = 0; i < lista.length; i++) {
     const taller = lista[i].taller;
     conteo[taller] = (conteo[taller] || 0) + 1;
@@ -203,6 +193,7 @@ function obtenerTallerPopular(lista = inscripciones) {
 
   let ganador = "Sin datos";
   let maximo = 0;
+
   for (const taller in conteo) {
     if (conteo[taller] > maximo) {
       ganador = taller;
@@ -214,13 +205,18 @@ function obtenerTallerPopular(lista = inscripciones) {
 }
 
 function mostrarMensaje(texto, tipo = "info") {
+  if (!mensaje) return;
+
   mensaje.textContent = texto;
   mensaje.className = `message ${tipo}`;
 }
 
 function limpiarFormulario() {
-  form.reset();
-  mostrarMensaje("Formulario limpio. Continue con una nueva prueba.", "info");
+  if (form) {
+    form.reset();
+  }
+
+  mostrarMensaje("Formulario limpio. Continúe con una nueva prueba.", "info");
 }
 
 function eliminarRegistro(id) {
@@ -231,7 +227,8 @@ function eliminarRegistro(id) {
 }
 
 function borrarTodo() {
-  if (!confirm("Desea borrar todas las inscripciones?")) return;
+  if (!confirm("¿Desea borrar todas las inscripciones?")) return;
+
   inscripciones = [];
   localStorage.removeItem(STORAGE_KEY);
   renderizarTabla();
@@ -239,7 +236,8 @@ function borrarTodo() {
   mostrarMensaje("Registros eliminados.", "info");
 }
 
-// Exposicion de funciones para tests.html. No eliminar.
+window.eliminarRegistro = eliminarRegistro;
+
 window.Semana11Feature = {
   validarInscripcion,
   obtenerDescripcionTaller,
